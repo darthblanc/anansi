@@ -1,0 +1,10 @@
+{
+  "concepts": [
+    {
+      "id": "multi-agent-overview",
+      "file": "multi-agent-overview.md",
+      "description": "Networks of specialised agents collaborating on tasks too large for a single context window. Covers when to use, architectural patterns, subagent patterns, and performance tradeoffs.",
+      "tags": ["agents", "orchestration", "multi-agent"]
+    }
+  ]
+}
