@@ -73,6 +73,11 @@ anansi/
     └── multi-agent-overview.md  # Learning material
 ```
 
+## Roadmap
+
+- **Provider-agnostic model support** — configurable model provider so the agent can run on OpenAI, Ollama, or any LangChain-compatible LLM, not just Anthropic
+- Database persistence for rolling per-concept scores
+
 ## Adding content
 
 To add a new topic to quiz on:
