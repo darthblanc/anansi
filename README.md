@@ -13,7 +13,7 @@ You're prompted for a topic. A LangGraph pipeline of agents handles the rest:
 5. **Evaluator** — scores each answer in parallel using extended thinking, with feedback
 6. **Collector** — aggregates results and prints your final score
 
-Results are designed to persist to PostgreSQL (tracking rolling per-concept scores via exponential moving average), though persistence is currently disabled.
+Results persist to PostgreSQL, tracking rolling per-concept scores via exponential moving average. Persistence is currently turned off for testing.
 
 ## Tech stack
 
@@ -76,7 +76,7 @@ anansi/
 ## Roadmap
 
 - **Provider-agnostic model support** — configurable model provider so the agent can run on OpenAI, Ollama, or any LangChain-compatible LLM, not just Anthropic
-- Database persistence for rolling per-concept scores
+- Re-enable database persistence for rolling per-concept scores
 
 ## Adding content
 
