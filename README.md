@@ -8,7 +8,7 @@ You're prompted for a topic. A LangGraph pipeline of agents handles the rest:
 
 1. **Selector** — matches your request to a concept in `index.json` and loads the relevant `wiki/` page
 2. **Planner** — uses extended thinking to outline 3–5 questions based on the material
-3. **Generator** — turns each outline into a full question
+3. **Generator** — turns each outline into a full question (free-answer or MCQ depending on the plan)
 4. **Interviewer** — conducts the quiz interactively in the terminal
 5. **Evaluator** — scores each answer in parallel using extended thinking, with feedback
 6. **Collector** — aggregates results and prints your final score
@@ -52,6 +52,15 @@ uv run python -m agent.main
 ```
 
 You'll be prompted: `What would you like to be quizzed on?`
+
+## Question types
+
+| Type | Description | Scoring |
+|---|---|---|
+| **Free answer** | Open-ended — type a full response | LLM-graded 0.0–1.0 with written feedback |
+| **MCQ** | Four lettered options (A/B/C/D) — type a letter | Exact match, 1.0 or 0.0 |
+
+The planner chooses the type per question: MCQ for factual/recall questions, free answer for anything requiring explanation or analysis. A quiz may contain a mix of both.
 
 ## Project structure
 
