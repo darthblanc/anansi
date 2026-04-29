@@ -1,10 +1,10 @@
 import json
-from langchain_anthropic import ChatAnthropic
+from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
 
 logger = get_logger(__name__)
-llm = ChatAnthropic(model="claude-sonnet-4-6", thinking={"type": "adaptive"})
+llm = create_llm(with_thinking=True)
 
 _SYSTEM_PROMPT = """You are a strict but fair quiz evaluator for a learning system.
 Given a question, the student's answer, and the source material, evaluate the answer.

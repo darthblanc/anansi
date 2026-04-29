@@ -19,7 +19,7 @@ Results persist to PostgreSQL, tracking rolling per-concept scores via exponenti
 
 - **Python 3.12**, [`uv`](https://github.com/astral-sh/uv) for package management
 - **LangGraph** — agent orchestration and state management
-- **LangChain Anthropic** — Claude Sonnet 4.6 (primary LLM, with extended thinking)
+- **LangChain** — provider-agnostic LLM support (Anthropic, OpenAI, Ollama); configured via `agent_config.json`
 - **PostgreSQL 16** — learner progress tracking (via Docker)
 - **LangSmith** — optional tracing
 
@@ -34,7 +34,15 @@ docker-compose up -d
 
 # Configure environment
 cp .env.example .env
-# Fill in ANTHROPIC_API_KEY (required), LANGSMITH_API_KEY (optional)
+# Fill in the API key for your chosen provider:
+#   Anthropic → ANTHROPIC_API_KEY
+#   OpenAI    → OPENAI_API_KEY
+#   Ollama    → no key needed
+# Optional: LANGSMITH_API_KEY for tracing
+
+# Configure LLM provider and model
+# Edit agent_config.json — set "provider", "api_key_env", and "model" in each profile
+# Supported providers: anthropic, openai, ollama
 ```
 
 ## Running
@@ -50,11 +58,13 @@ You'll be prompted: `What would you like to be quizzed on?`
 ```
 anansi/
 ├── main.py                   # Entry point
+├── agent_config.json         # LLM provider + model config
 ├── index.json                # Concept registry (id → description)
 ├── docker-compose.yml        # PostgreSQL service
 │
 ├── agent/
 │   ├── main.py               # LangGraph graph definition & run_quiz()
+│   ├── llm_factory.py        # Provider factory (Anthropic, OpenAI, Ollama)
 │   ├── state.py              # AgentState schema
 │   ├── db.py                 # Persistence logic
 │   ├── nodes/
@@ -72,10 +82,6 @@ anansi/
 └── wiki/
     └── multi-agent-overview.md  # Learning material
 ```
-
-## Roadmap
-
-- **Provider-agnostic model support** — configurable model provider so the agent can run on OpenAI, Ollama, or any LangChain-compatible LLM, not just Anthropic
 
 ## Adding content
 
