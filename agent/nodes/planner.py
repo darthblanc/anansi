@@ -1,10 +1,10 @@
 import json
-from langchain_anthropic import ChatAnthropic
+from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
 
 logger = get_logger(__name__)
-llm = ChatAnthropic(model="claude-sonnet-4-6", thinking={"type": "adaptive"})
+llm = create_llm(with_thinking=True)
 
 
 def _extract_text(content) -> str:

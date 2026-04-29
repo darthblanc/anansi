@@ -1,10 +1,10 @@
 import json
-from langchain_anthropic import ChatAnthropic
+from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
 
 logger = get_logger(__name__)
-llm = ChatAnthropic(model="claude-sonnet-4-6")
+llm = create_llm()
 
 def load_index(index_path: str = "index.json") -> list[dict]:
     with open(index_path, "r") as f:

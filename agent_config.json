@@ -1,0 +1,13 @@
+{
+  "provider": "anthropic",
+  "api_key_env": "ANTHROPIC_API_KEY",
+  "standard": {
+    "model": "claude-sonnet-4-6",
+    "params": {}
+  },
+  "thinking": {
+    "model": "claude-sonnet-4-6",
+    "thinking": true,
+    "params": {}
+  }
+}
