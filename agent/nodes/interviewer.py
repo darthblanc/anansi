@@ -10,11 +10,24 @@ def interviewer_node(state: AgentState) -> AgentState:
 
     print(f"\nQuiz starting — {len(state['questions'])} questions\n")
 
+    _letters = "ABCD"
+
     for i, q in enumerate(state["questions"], 1):
         print(f"Q{i}: {q['question']}")
-        answer = input("Your answer: ").strip()
+        if q.get("question_type") == "mcq":
+            for j, opt in enumerate(q["options"]):
+                print(f"  {_letters[j]}) {opt}")
+            valid = _letters[:len(q["options"])]
+            while True:
+                raw = input(f"Your answer ({'/'.join(valid)}): ").strip().upper()
+                if raw in valid:
+                    answer = raw
+                    break
+                print(f"  Please enter one of {'/'.join(valid)}")
+        else:
+            answer = input("Your answer: ").strip()
         print()
-        logger.debug("interviewer — Q%d answered (%d chars)", i, len(answer))
+        logger.debug("interviewer — Q%d answered: %r", i, answer)
 
         answered_questions.append({
             **q,
