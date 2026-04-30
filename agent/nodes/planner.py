@@ -1,10 +1,10 @@
 import json
-from langchain_anthropic import ChatAnthropic
+from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
 
 logger = get_logger(__name__)
-llm = ChatAnthropic(model="claude-sonnet-4-6", thinking={"type": "adaptive"})
+llm = create_llm(with_thinking=True)
 
 
 def _extract_text(content) -> str:
@@ -29,13 +29,16 @@ def planner_node(state: AgentState) -> AgentState:
 Given learning material, create a quiz plan as a JSON array of question outlines.
 Each outline should specify:
 - the concept being tested
-- the type of question (conceptual, applied, compare-contrast)
+- the type of question (conceptual, applied, compare-contrast, mcq)
 - the key idea being tested
+
+Use "mcq" for factual or recall-based questions where a single correct answer can be expressed as one of four options.
+Use the other types for questions that require explanation, reasoning, or analysis.
 
 Return ONLY a JSON array. No explanation, no markdown.
 Example:
 [
-    {"concept": "multi-agent-systems", "type": "conceptual", "focus": "when to use multi-agent over single agent"},
+    {"concept": "multi-agent-systems", "type": "mcq", "focus": "which scenario justifies using multiple agents"},
     {"concept": "react-agents", "type": "applied", "focus": "how the reason-act loop handles tool failures"}
 ]"""
         },

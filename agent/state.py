@@ -4,6 +4,9 @@ import operator
 
 class QuizQuestion(TypedDict):
     question: str
+    question_type: Literal["free", "mcq"]
+    options: Optional[list[str]]     # MCQ only — 4 answer strings
+    correct_option: Optional[int]    # MCQ only — 0-indexed
     user_answer: str
     score: Optional[float]
     feedback: Optional[str]

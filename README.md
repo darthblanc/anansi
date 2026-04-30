@@ -8,7 +8,7 @@ You're prompted for a topic. A LangGraph pipeline of agents handles the rest:
 
 1. **Selector** — matches your request to a concept in `index.json` and loads the relevant `wiki/` page
 2. **Planner** — uses extended thinking to outline 3–5 questions based on the material
-3. **Generator** — turns each outline into a full question
+3. **Generator** — turns each outline into a full question (free-answer or MCQ depending on the plan)
 4. **Interviewer** — conducts the quiz interactively in the terminal
 5. **Evaluator** — scores each answer in parallel using extended thinking, with feedback
 6. **Collector** — aggregates results and prints your final score
@@ -19,7 +19,7 @@ Results persist to PostgreSQL, tracking rolling per-concept scores via exponenti
 
 - **Python 3.12**, [`uv`](https://github.com/astral-sh/uv) for package management
 - **LangGraph** — agent orchestration and state management
-- **LangChain Anthropic** — Claude Sonnet 4.6 (primary LLM, with extended thinking)
+- **LangChain** — provider-agnostic LLM support (Anthropic, OpenAI, Ollama); configured via `agent_config.json`
 - **PostgreSQL 16** — learner progress tracking (via Docker)
 - **LangSmith** — optional tracing
 
@@ -34,7 +34,15 @@ docker-compose up -d
 
 # Configure environment
 cp .env.example .env
-# Fill in ANTHROPIC_API_KEY (required), LANGSMITH_API_KEY (optional)
+# Fill in the API key for your chosen provider:
+#   Anthropic → ANTHROPIC_API_KEY
+#   OpenAI    → OPENAI_API_KEY
+#   Ollama    → no key needed
+# Optional: LANGSMITH_API_KEY for tracing
+
+# Configure LLM provider and model
+# Edit agent_config.json — set "provider", "api_key_env", and "model" in each profile
+# Supported providers: anthropic, openai, ollama
 ```
 
 ## Running
@@ -45,16 +53,27 @@ uv run python -m agent.main
 
 You'll be prompted: `What would you like to be quizzed on?`
 
+## Question types
+
+| Type | Description | Scoring |
+|---|---|---|
+| **Free answer** | Open-ended — type a full response | LLM-graded 0.0–1.0 with written feedback |
+| **MCQ** | Four lettered options (A/B/C/D) — type a letter | Exact match, 1.0 or 0.0 |
+
+The planner chooses the type per question: MCQ for factual/recall questions, free answer for anything requiring explanation or analysis. A quiz may contain a mix of both.
+
 ## Project structure
 
 ```
 anansi/
 ├── main.py                   # Entry point
+├── agent_config.json         # LLM provider + model config
 ├── index.json                # Concept registry (id → description)
 ├── docker-compose.yml        # PostgreSQL service
 │
 ├── agent/
 │   ├── main.py               # LangGraph graph definition & run_quiz()
+│   ├── llm_factory.py        # Provider factory (Anthropic, OpenAI, Ollama)
 │   ├── state.py              # AgentState schema
 │   ├── db.py                 # Persistence logic
 │   ├── nodes/
@@ -72,10 +91,6 @@ anansi/
 └── wiki/
     └── multi-agent-overview.md  # Learning material
 ```
-
-## Roadmap
-
-- **Provider-agnostic model support** — configurable model provider so the agent can run on OpenAI, Ollama, or any LangChain-compatible LLM, not just Anthropic
 
 ## Adding content
 
