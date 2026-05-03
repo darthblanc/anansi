@@ -1,0 +1,157 @@
+.quiz-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Bubble nav ── */
+.bubbles {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bubble {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #2a2a2a;
+  background: #111;
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bubble:hover {
+  border-color: #555;
+  color: #aaa;
+}
+
+/* Answered but not current */
+.bubble-answered {
+  border-color: #333;
+  color: #999;
+  background: #1a1a1a;
+}
+
+/* Current question */
+.bubble-active {
+  border-color: #e8e8e8;
+  background: #e8e8e8;
+  color: #0f0f0f;
+}
+
+/* Answered + current */
+.bubble-active.bubble-answered {
+  border-color: #e8e8e8;
+  background: #e8e8e8;
+  color: #0f0f0f;
+}
+
+/* ── Question card ── */
+.question-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 200px;
+}
+
+.question-label {
+  font-size: 0.72rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.question-text {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #e8e8e8;
+}
+
+/* ── MCQ options ── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.option:hover {
+  border-color: #444;
+  background: #161616;
+}
+
+.option-selected {
+  border-color: #555;
+  background: #1e1e1e;
+}
+
+.option input[type='radio'] {
+  display: none;
+}
+
+.option-letter {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #555;
+  min-width: 1.1rem;
+}
+
+.option-selected .option-letter {
+  color: #e8e8e8;
+}
+
+.option-text {
+  font-size: 0.95rem;
+}
+
+/* ── Free answer ── */
+.free-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #e8e8e8;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.free-input:focus {
+  border-color: #666;
+}
+
+/* ── Nav row ── */
+.quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* ── Progress hint ── */
+.answered-count {
+  font-size: 0.78rem;
+  color: #555;
+  text-align: center;
+}

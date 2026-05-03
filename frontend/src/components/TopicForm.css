@@ -1,0 +1,47 @@
+.topic-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 4rem;
+}
+
+.topic-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.topic-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 0.4rem;
+  color: #e8e8e8;
+}
+
+.topic-sub {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 1.8rem;
+}
+
+.topic-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.topic-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #e8e8e8;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.topic-input:focus {
+  border-color: #666;
+}
