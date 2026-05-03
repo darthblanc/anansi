@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from langchain_core.language_models.chat_models import BaseChatModel
 
@@ -9,6 +10,13 @@ _DEFAULT_KEY_ENV = {
     "anthropic": "ANTHROPIC_API_KEY",
     "openai": "OPENAI_API_KEY",
 }
+
+
+def extract_text(content) -> str:
+    if isinstance(content, list):
+        text = next(block["text"] for block in content if block.get("type") == "text")
+        return re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+    return content
 
 
 def _load_config() -> dict:
