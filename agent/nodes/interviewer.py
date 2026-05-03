@@ -1,5 +1,6 @@
 from agent.state import AgentState
 from agent.logging_config import get_logger
+import readline
 
 logger = get_logger(__name__)
 

@@ -1,12 +1,16 @@
 import json
+import os
 from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
+from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
 llm = create_llm()
 
-def load_index(index_path: str = "index.json") -> list[dict]:
+INDEX_PATH = os.getenv("INDEX_PATH")
+
+def load_index(index_path: str = INDEX_PATH) -> list[dict]:
     with open(index_path, "r") as f:
         return json.load(f)["concepts"]
 
@@ -22,13 +26,7 @@ def selector_node(state: AgentState) -> AgentState:
     ])
 
     response = llm.invoke([
-        {
-            "role": "system",
-            "content": """You are a concept selector for a learning system.
-Given a user request and a list of concepts, return ONLY a JSON array of concept ids that are relevant.
-Example: ["multi-agent-systems", "react-agents"]
-Return nothing else. No explanation, no markdown."""
-        },
+        {"role": "system", "content": PROMPTS["selector"]},
         {
             "role": "user",
             "content": f"""User request: {state['user_prompt']}

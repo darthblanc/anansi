@@ -2,6 +2,7 @@ import json
 from agent.llm_factory import create_llm
 from agent.state import AgentState
 from agent.logging_config import get_logger
+from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
 llm = create_llm()
@@ -18,17 +19,7 @@ def generator_node(state: AgentState) -> AgentState:
 
         if outline["type"] == "mcq":
             response = llm.invoke([
-                {
-                    "role": "system",
-                    "content": """You are a quiz question generator for a learning system.
-Given a question outline and learning material, generate a multiple-choice question with exactly 4 options.
-Return ONLY a JSON object with three keys:
-- "question": the question text
-- "options": an array of exactly 4 answer strings
-- "correct_option": the 0-based index of the correct option (0, 1, 2, or 3)
-No explanation, no markdown.
-Example: {"question": "Which is NOT a reason to use a multi-agent system?", "options": ["Parallelism", "Lower cost", "Context limits", "Distributed development"], "correct_option": 1}"""
-                },
+                {"role": "system", "content": PROMPTS["generator_mcq"]},
                 {
                     "role": "user",
                     "content": f"""Question outline:
@@ -55,14 +46,7 @@ Generate the multiple-choice question."""
             })
         else:
             response = llm.invoke([
-                {
-                    "role": "system",
-                    "content": """You are a quiz question generator for a learning system.
-Given a question outline and learning material, generate a single clear question.
-Return ONLY a JSON object with one key: "question".
-No explanation, no markdown.
-Example: {"question": "What are the three legitimate reasons to use a multi-agent system over a single agent?"}"""
-                },
+                {"role": "system", "content": PROMPTS["generator_free"]},
                 {
                     "role": "user",
                     "content": f"""Question outline:

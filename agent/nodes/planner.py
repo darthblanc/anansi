@@ -1,16 +1,11 @@
 import json
-from agent.llm_factory import create_llm
+from agent.llm_factory import create_llm, extract_text
 from agent.state import AgentState
 from agent.logging_config import get_logger
+from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
 llm = create_llm(with_thinking=True)
-
-
-def _extract_text(content) -> str:
-    if isinstance(content, list):
-        return next(block["text"] for block in content if block.get("type") == "text")
-    return content
 
 
 def planner_node(state: AgentState) -> AgentState:
@@ -23,25 +18,7 @@ def planner_node(state: AgentState) -> AgentState:
     ])
 
     response = llm.invoke([
-        {
-            "role": "system",
-            "content": """You are a quiz planner for a learning system.
-Given learning material, create a quiz plan as a JSON array of question outlines.
-Each outline should specify:
-- the concept being tested
-- the type of question (conceptual, applied, compare-contrast, mcq)
-- the key idea being tested
-
-Use "mcq" for factual or recall-based questions where a single correct answer can be expressed as one of four options.
-Use the other types for questions that require explanation, reasoning, or analysis.
-
-Return ONLY a JSON array. No explanation, no markdown.
-Example:
-[
-    {"concept": "multi-agent-systems", "type": "mcq", "focus": "which scenario justifies using multiple agents"},
-    {"concept": "react-agents", "type": "applied", "focus": "how the reason-act loop handles tool failures"}
-]"""
-        },
+        {"role": "system", "content": PROMPTS["planner"]},
         {
             "role": "user",
             "content": f"""User request: {state['user_prompt']}
@@ -53,7 +30,7 @@ Create a quiz plan with 3-5 questions that test genuine understanding, not memor
         }
     ])
 
-    quiz_plan = json.loads(_extract_text(response.content))
+    quiz_plan = json.loads(extract_text(response.content))
     logger.info("planner — planned %d question(s): %s", len(quiz_plan), [q.get("focus") for q in quiz_plan])
 
     return {
