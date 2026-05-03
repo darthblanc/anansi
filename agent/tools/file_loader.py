@@ -1,7 +1,9 @@
 from agent.state import AgentState
 from agent.logging_config import get_logger
-
+import os
 logger = get_logger(__name__)
+
+WIKI_PATH = os.getenv("WIKI_PATH")
 
 
 def loader_node(state: AgentState) -> AgentState:
@@ -9,7 +11,8 @@ def loader_node(state: AgentState) -> AgentState:
     logger.info("loader — loading %d concept(s): %s", len(state["selected_concepts"]), state["selected_concepts"])
 
     for concept_id in state["selected_concepts"]:
-        path = f"wiki/{concept_id}.md"
+        path = f"{WIKI_PATH}/{concept_id}.md"
+
         try:
             with open(path, "r") as f:
                 loaded_content[concept_id] = f.read()
