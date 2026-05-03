@@ -1,12 +1,14 @@
 # Anansi
 
-An extension of [Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) with a quiz and evaluator agent. Where the wiki pattern focuses on ingesting and querying a persistent knowledge base, Anansi adds an active learning loop: it quizzes you on the material in your wiki and evaluates your answers.
+In West African folklore, Anansi is a spider — keeper of all stories, font of wisdom, and a trickster who demands proof of understanding from those who seek knowledge. This project takes that name: an adversarial examiner that challenges you to prove mastery of your own material. A rite of passage between you and the knowledge you claim to hold.
+
+Built as an extension of [Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), Anansi adds an active learning loop: it quizzes you on the material in your wiki and evaluates your answers.
 
 ## How it works
 
 You're prompted for a topic. A LangGraph pipeline of agents handles the rest:
 
-1. **Selector** — matches your request to a concept in `index.json` and loads the relevant `wiki/` page
+1. **Selector** — matches your request to a concept in your index file and loads the relevant wiki page
 2. **Planner** — uses extended thinking to outline 3–5 questions based on the material
 3. **Generator** — turns each outline into a full question (free-answer or MCQ depending on the plan)
 4. **Interviewer** — conducts the quiz interactively in the terminal
@@ -39,6 +41,11 @@ cp .env.example .env
 #   OpenAI    → OPENAI_API_KEY
 #   Ollama    → no key needed
 # Optional: LANGSMITH_API_KEY for tracing
+#
+# Required: point the agent at your own wiki and index files:
+#   WIKI_PATH  → path to the directory containing your wiki markdown files
+#   INDEX_PATH → path to your index JSON file (concept registry)
+# The agent cannot run without these set.
 
 # Configure LLM provider and model
 # Edit agent_config.json — set "provider", "api_key_env", and "model" in each profile
@@ -68,7 +75,6 @@ The planner chooses the type per question: MCQ for factual/recall questions, fre
 anansi/
 ├── main.py                   # Entry point
 ├── agent_config.json         # LLM provider + model config
-├── index.json                # Concept registry (id → description)
 ├── docker-compose.yml        # PostgreSQL service
 │
 ├── agent/
@@ -88,14 +94,13 @@ anansi/
 │
 ├── db/
 │   └── init.sql              # Schema: quiz_attempts + concept_profile
-└── wiki/
-    └── multi-agent-overview.md  # Learning material
 ```
 
 ## Adding content
 
-To add a new topic to quiz on:
+Anansi is read-only with respect to your wiki — it loads your files to generate questions but never writes to them. You manage the wiki and index yourself, or with your own tooling (Claude Code, Codex, etc.).
 
-1. Add a markdown page to `wiki/` (following the same format as existing pages)
-2. Add an entry to `index.json` with a matching `id` and a short description
-3. The selector will automatically route relevant quiz requests to the new material
+- **`INDEX_PATH`** — a JSON file mapping concept IDs to short descriptions (the selector uses this to match topics)
+- **`WIKI_PATH`** — a directory of markdown files; each file corresponds to a concept in the index
+
+To add a new topic, update your wiki and index directly, then Anansi will pick it up on the next run.
