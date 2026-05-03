@@ -100,7 +100,15 @@ anansi/
 
 Anansi is read-only with respect to your wiki — it loads your files to generate questions but never writes to them. You manage the wiki and index yourself, or with your own tooling (Claude Code, Codex, etc.).
 
-- **`INDEX_PATH`** — a JSON file mapping concept IDs to short descriptions (the selector uses this to match topics)
-- **`WIKI_PATH`** — a directory of markdown files; each file corresponds to a concept in the index
+- **`INDEX_PATH`** — a JSON file with a `concepts` array. Each entry has four fields:
+
+  | Field | Purpose |
+  |---|---|
+  | `id` | Unique identifier used to match quiz requests |
+  | `file` | The markdown filename in `WIKI_PATH` |
+  | `description` | What the selector reads to route requests — write it to capture the key terms someone would use |
+  | `tags` | Additional keywords to aid matching |
+
+- **`WIKI_PATH`** — a directory of markdown files; each file's name corresponds to the `file` field of its index entry
 
 To add a new topic, update your wiki and index directly, then Anansi will pick it up on the next run.
