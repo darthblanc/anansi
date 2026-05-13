@@ -1,6 +1,7 @@
 import json
 import os
 from agent.llm_factory import create_llm
+from agent.embeddings import rag_retrieve
 from agent.state import AgentState
 from agent.logging_config import get_logger
 from agent.prompts import PROMPTS
@@ -19,10 +20,13 @@ def selector_node(state: AgentState) -> AgentState:
     concepts = load_index()
     logger.debug("selector — %d concepts available", len(concepts))
 
-    # build a compact index string for the LLM
+    # RAG: shortlist semantically relevant candidates before LLM filtering
+    candidates = rag_retrieve(state["user_prompt"], concepts)
+    logger.debug("selector — LLM filtering %d RAG candidates", len(candidates))
+
     index_str = "\n".join([
         f"- id: {c['id']} | description: {c['description']}"
-        for c in concepts
+        for c in candidates
     ])
 
     response = llm.invoke([

@@ -9,5 +9,11 @@
     "model": "claude-sonnet-4-6",
     "thinking": true,
     "params": {}
+  },
+  "embeddings": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "api_key_env": "OPENAI_API_KEY",
+    "top_k": 10
   }
 }

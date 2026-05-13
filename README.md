@@ -8,7 +8,7 @@ Built as an extension of [Karpathy's LLM wiki pattern](https://gist.github.com/k
 
 You supply a topic. A LangGraph pipeline of agents handles the rest:
 
-1. **Selector** — matches your request to a concept in your index file and loads the relevant wiki page
+1. **Selector** — embeds your request and concept descriptions, retrieves the top-k semantic matches via cosine similarity (RAG), then passes those candidates to an LLM for a final precise selection
 2. **Planner** — uses extended thinking to outline 3–5 questions based on the material
 3. **Generator** — turns each outline into a full question (free-answer or MCQ depending on the plan)
 4. **Interviewer** — presents each question and collects your answers (terminal or browser)
@@ -22,7 +22,7 @@ Results persist to PostgreSQL, tracking rolling per-concept scores via exponenti
 **Backend**
 - **Python 3.12**, [`uv`](https://github.com/astral-sh/uv) for package management
 - **LangGraph** — agent orchestration and state management
-- **LangChain** — provider-agnostic LLM support (Anthropic, OpenAI, Ollama); configured via `agent_config.json`
+- **LangChain** — provider-agnostic LLM and embeddings support (Anthropic, OpenAI, Ollama); configured via `agent_config.json`
 - **FastAPI** — REST API server for the web UI
 - **PostgreSQL 16** — learner progress tracking (via Docker)
 - **LangSmith** — optional tracing
@@ -56,7 +56,12 @@ cp .env.example .env
 
 # Configure LLM provider and model
 # Edit agent_config.json — set "provider", "api_key_env", and "model" in each profile
-# Supported providers: anthropic, openai, ollama
+# Supported LLM providers: anthropic, openai, ollama
+#
+# Configure embeddings provider (used by the selector for RAG retrieval)
+# Edit the "embeddings" block in agent_config.json
+# Supported embeddings providers: openai (text-embedding-3-small), ollama (nomic-embed-text)
+# Concept embeddings are cached to disk next to INDEX_PATH — rebuilt automatically if the index changes
 ```
 
 ### Frontend
@@ -107,16 +112,17 @@ The planner chooses the type per question: MCQ for factual/recall, free answer f
 
 ```
 anansi/
-├── agent_config.json         # LLM provider + model config
+├── agent_config.json         # LLM provider + model config; embeddings provider + top_k
 ├── docker-compose.yml        # PostgreSQL service
 │
 ├── agent/                    # Core pipeline
 │   ├── main.py               # LangGraph graph definitions & run_quiz() (CLI entry)
-│   ├── llm_factory.py        # Provider factory (Anthropic, OpenAI, Ollama)
+│   ├── llm_factory.py        # LLM provider factory (Anthropic, OpenAI, Ollama)
+│   ├── embeddings.py         # Embeddings factory + RAG retrieval + disk cache
 │   ├── state.py              # AgentState + QuizQuestion schemas
 │   ├── db.py                 # Persistence logic
 │   ├── nodes/
-│   │   ├── selector.py       # Topic → concept matching
+│   │   ├── selector.py       # RAG shortlist → LLM final selection
 │   │   ├── planner.py        # Quiz plan (extended thinking)
 │   │   ├── generator.py      # Question generation
 │   │   ├── interviewer.py    # Interactive CLI answer collection
@@ -153,8 +159,10 @@ Anansi is read-only with respect to your wiki — it loads your files to generat
   |---|---|
   | `id` | Unique identifier used to match quiz requests |
   | `file` | The markdown filename in `WIKI_PATH` |
-  | `description` | What the selector reads to route requests — write it to capture the key terms someone would use |
+  | `description` | What the selector embeds for RAG retrieval — write it to capture the key terms someone would use |
   | `tags` | Additional keywords to aid matching |
+
+  On first run, Anansi embeds all concept descriptions and writes a cache file (`index.embeddings.json`) alongside `INDEX_PATH`. The cache is reused on subsequent runs and rebuilt automatically whenever the concept set changes.
 
 - **`WIKI_PATH`** — a directory of markdown files; each file's name corresponds to the `file` field of its index entry
 
