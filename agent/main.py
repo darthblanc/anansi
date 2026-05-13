@@ -1,4 +1,3 @@
-import json
 from langgraph.graph import StateGraph, END
 from langgraph.types import Send
 from agent.state import AgentState
@@ -22,36 +21,45 @@ def _fan_out_evaluations(state: AgentState) -> list[Send]:
     ]
 
 
-def build_graph():
-    graph = StateGraph(AgentState)
+def _evaluation_router(state: AgentState) -> AgentState:
+    return state
 
-    # register nodes
+
+def build_generation_graph():
+    graph = StateGraph(AgentState)
     graph.add_node("selector", selector_node)
     graph.add_node("loader", loader_node)
     graph.add_node("planner", planner_node)
     graph.add_node("generator", generator_node)
-    graph.add_node("interviewer", interviewer_node)
-    graph.add_node("evaluate_one", evaluate_one_node)
-    graph.add_node("collect", collect_node)
-    graph.add_node("persister", persister_node)
 
-    # wire edges
     graph.set_entry_point("selector")
     graph.add_edge("selector", "loader")
     graph.add_edge("loader", "planner")
     graph.add_edge("planner", "generator")
-    graph.add_edge("generator", "interviewer")
-    graph.add_conditional_edges("interviewer", _fan_out_evaluations, ["evaluate_one"])
+    graph.add_edge("generator", END)
+
+    return graph.compile()
+
+
+def build_evaluation_graph():
+    graph = StateGraph(AgentState)
+    graph.add_node("router", _evaluation_router)
+    graph.add_node("evaluate_one", evaluate_one_node)
+    graph.add_node("collect", collect_node)
+    # graph.add_node("persister", persister_node)
+
+    graph.set_entry_point("router")
+    graph.add_conditional_edges("router", _fan_out_evaluations, ["evaluate_one"])
     graph.add_edge("evaluate_one", "collect")
-    graph.add_edge("collect", "persister")
-    graph.add_edge("persister", END)
+    graph.add_edge("collect", END)
+    # graph.add_edge("collect", "persister")
+    # graph.add_edge("persister", END)
 
     return graph.compile()
 
 
 def run_quiz(user_prompt: str):
     logger.info("run_quiz — starting: %r", user_prompt)
-    app = build_graph()
 
     initial_state: AgentState = {
         "user_prompt": user_prompt,
@@ -65,7 +73,13 @@ def run_quiz(user_prompt: str):
         "status": "selecting"
     }
 
-    final_state = app.invoke(initial_state, {"max_concurrency": 4})
+    gen_graph = build_generation_graph()
+    state = gen_graph.invoke(initial_state, {"max_concurrency": 4})
+
+    state = interviewer_node(state)
+
+    eval_graph = build_evaluation_graph()
+    final_state = eval_graph.invoke(state, {"max_concurrency": 4})
 
     # print results
     print(f"\n{'='*50}")
