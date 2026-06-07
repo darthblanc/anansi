@@ -1,6 +1,6 @@
 # Anansi
 
-In West African folklore, Anansi is a spider — keeper of all stories, font of wisdom, and a trickster who demands proof of understanding from those who seek knowledge. This project takes that name: an adversarial examiner that challenges you to prove mastery of your own material. A rite of passage between you and the knowledge you claim to hold.
+In West African folklore, Anansi is a spider — keeper of all stories, font of wisdom, and a trickster who demands proof of understanding from those who seek knowledge. This project takes that name: an adversarial examiner that challenges you to prove mastery of your own material.
 
 Built as an extension of [Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), Anansi adds an active learning loop: it quizzes you on the material in your wiki and evaluates your answers.
 
@@ -15,14 +15,29 @@ You supply a topic. A LangGraph pipeline of agents handles the rest:
 5. **Evaluator** — scores each answer in parallel using extended thinking, with written feedback
 6. **Collector** — aggregates results into a final score
 
-Results persist to PostgreSQL, tracking rolling per-concept scores via exponential moving average.
+Persistence to PostgreSQL — tracking rolling per-concept scores via exponential moving average — is implemented in `agent/db.py`, but the persister node is currently disabled in the pipeline (see Project structure).
+
+### Grading benchmark — sequential vs parallel
+
+The evaluator scores all questions concurrently via LangGraph's `Send` fan-out (`max_concurrency=4`). Run `python benchmark_grading.py` to reproduce the comparison against sequential grading (`max_concurrency=1`):
+
+```
+==================================================
+Grading benchmark — sequential vs parallel
+==================================================
+Questions graded:        8
+Sequential (concurrency=1): 26.84s  (3.35s/question)
+Parallel   (concurrency=4): 11.98s  (1.50s/question)
+Speedup:                 2.24x
+==================================================
+```
 
 ## Tech stack
 
 **Backend**
 - **Python 3.12**, [`uv`](https://github.com/astral-sh/uv) for package management
 - **LangGraph** — agent orchestration and state management
-- **LangChain** — provider-agnostic LLM and embeddings support (Anthropic, OpenAI, Ollama); configured via `agent_config.json`
+- **LangChain** — provider-agnostic LLM (Anthropic, OpenAI, Ollama) and embeddings (OpenAI, Ollama) support; configured via `agent_config.json`
 - **FastAPI** — REST API server for the web UI
 - **PostgreSQL 16** — learner progress tracking (via Docker)
 - **LangSmith** — optional tracing
@@ -55,13 +70,14 @@ cp .env.example .env
 #   INDEX_PATH → path to your index JSON file (concept registry)
 
 # Configure LLM provider and model
-# Edit agent_config.json — set "provider", "api_key_env", and "model" in each profile
+# Edit agent_config.json — set the top-level "provider" and "api_key_env",
+# and the "model" for each profile (standard, thinking)
 # Supported LLM providers: anthropic, openai, ollama
 #
 # Configure embeddings provider (used by the selector for RAG retrieval)
 # Edit the "embeddings" block in agent_config.json
 # Supported embeddings providers: openai (text-embedding-3-small), ollama (nomic-embed-text)
-# Concept embeddings are cached to disk next to INDEX_PATH — rebuilt automatically if the index changes
+# Concept embeddings are cached to disk next to INDEX_PATH (see "Adding content" for cache-rebuild details)
 ```
 
 ### Frontend
