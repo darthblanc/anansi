@@ -1,6 +1,9 @@
 from uuid import uuid4
 from agent.state import AgentState
 
+# In-memory only — sessions may carry live user-supplied API keys via
+# AgentState's llm_override/embeddings_override fields. Never back this with
+# persistent storage (disk, DB, cache) without first stripping those fields.
 _sessions: dict[str, AgentState] = {}
 
 

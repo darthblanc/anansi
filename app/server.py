@@ -1,6 +1,8 @@
+from typing import Literal
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from agent.main import build_generation_graph, build_evaluation_graph
 from agent.state import AgentState
@@ -18,6 +20,13 @@ app.add_middleware(
 
 class StartRequest(BaseModel):
     topic: str
+    # Users supply their own cloud-provider API keys — the deployed backend
+    # never uses its own. Keys are used only for this request/session and
+    # are never written to disk, a database, or logs.
+    llm_provider: Literal["anthropic", "openai"]
+    llm_api_key: str = Field(min_length=1)
+    embeddings_provider: Literal["openai"]
+    embeddings_api_key: str = Field(min_length=1)
 
 
 class SubmitRequest(BaseModel):
@@ -29,6 +38,8 @@ class SubmitRequest(BaseModel):
 async def start_quiz(body: StartRequest):
     initial_state: AgentState = {
         "user_prompt": body.topic,
+        "llm_override": {"provider": body.llm_provider, "api_key": body.llm_api_key},
+        "embeddings_override": {"provider": body.embeddings_provider, "api_key": body.embeddings_api_key},
         "selected_concepts": [],
         "loaded_content": {},
         "quiz_plan": [],
