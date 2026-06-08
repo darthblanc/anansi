@@ -40,7 +40,13 @@ def test_start_quiz_returns_session_id_and_stripped_questions(monkeypatch, clien
     monkeypatch.setattr(server, "build_generation_graph", lambda: fake_graph)
     monkeypatch.setattr(server, "create_session", lambda state: "session-123")
 
-    response = client.post("/api/quiz/start", json={"topic": "transformers"})
+    response = client.post("/api/quiz/start", json={
+        "topic": "transformers",
+        "llm_provider": "anthropic",
+        "llm_api_key": "test-llm-key",
+        "embeddings_provider": "openai",
+        "embeddings_api_key": "test-embeddings-key",
+    })
 
     assert response.status_code == 200
     body = response.json()
@@ -55,6 +61,32 @@ def test_start_quiz_returns_session_id_and_stripped_questions(monkeypatch, clien
     fake_graph.invoke.assert_called_once()
     invoked_state = fake_graph.invoke.call_args[0][0]
     assert invoked_state["user_prompt"] == "transformers"
+    assert invoked_state["llm_override"] == {"provider": "anthropic", "api_key": "test-llm-key"}
+    assert invoked_state["embeddings_override"] == {"provider": "openai", "api_key": "test-embeddings-key"}
+
+
+def test_start_quiz_rejects_non_cloud_providers(client):
+    response = client.post("/api/quiz/start", json={
+        "topic": "transformers",
+        "llm_provider": "ollama",
+        "llm_api_key": "test-llm-key",
+        "embeddings_provider": "openai",
+        "embeddings_api_key": "test-embeddings-key",
+    })
+
+    assert response.status_code == 422
+
+
+def test_start_quiz_rejects_blank_api_keys(client):
+    response = client.post("/api/quiz/start", json={
+        "topic": "transformers",
+        "llm_provider": "anthropic",
+        "llm_api_key": "",
+        "embeddings_provider": "openai",
+        "embeddings_api_key": "test-embeddings-key",
+    })
+
+    assert response.status_code == 422
 
 
 def test_submit_quiz_merges_answers_and_returns_evaluated_results(monkeypatch, client, make_state):

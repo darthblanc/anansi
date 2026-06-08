@@ -24,7 +24,7 @@ def test_generator_node_builds_mcq_and_free_questions(monkeypatch, make_state, f
     }))
     free_response = fake_llm_response(json.dumps({"question": "Explain concept B."}))
 
-    monkeypatch.setattr(generator, "llm", _fake_llm([mcq_response, free_response]))
+    monkeypatch.setattr(generator, "_cached_llm", _fake_llm([mcq_response, free_response]))
 
     result = generator.generator_node(state)
 

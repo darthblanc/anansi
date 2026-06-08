@@ -72,7 +72,7 @@ def test_evaluate_one_node_handles_free_text_questions(monkeypatch, make_state, 
     )
 
     response = fake_llm_response(json.dumps({"score": 0.8, "feedback": "Mostly correct."}))
-    monkeypatch.setattr(evaluator, "llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
+    monkeypatch.setattr(evaluator, "_cached_thinking_llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
 
     result = evaluator.evaluate_one_node(state)
 

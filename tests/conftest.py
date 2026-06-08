@@ -17,6 +17,8 @@ def make_state():
     def _make_state(**overrides):
         state = {
             "user_prompt": "quiz me on multi agent systems",
+            "llm_override": None,
+            "embeddings_override": None,
             "selected_concepts": [],
             "loaded_content": {},
             "quiz_plan": [],

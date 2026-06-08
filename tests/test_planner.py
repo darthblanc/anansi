@@ -17,7 +17,7 @@ def test_planner_node_parses_quiz_plan_from_fenced_json(monkeypatch, make_state,
         {"type": "thinking", "text": "Let me design a good quiz plan..."},
         {"type": "text", "text": "```json\n" + json.dumps(plan) + "\n```"},
     ])
-    monkeypatch.setattr(planner, "llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
+    monkeypatch.setattr(planner, "_cached_thinking_llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
 
     result = planner.planner_node(state)
 
@@ -35,7 +35,7 @@ def test_planner_node_skips_empty_loaded_content(monkeypatch, make_state, fake_l
         captured["user_message"] = messages[1]["content"]
         return fake_llm_response("[]")
 
-    monkeypatch.setattr(planner, "llm", type("FakeLLM", (), {"invoke": staticmethod(fake_invoke)})())
+    monkeypatch.setattr(planner, "_cached_thinking_llm", type("FakeLLM", (), {"invoke": staticmethod(fake_invoke)})())
 
     planner.planner_node(state)
 

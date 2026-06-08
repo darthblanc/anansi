@@ -20,11 +20,11 @@ def test_selector_node_filters_rag_candidates_with_llm(monkeypatch, make_state, 
     candidates = [{"id": "a", "description": "Concept A"}]
 
     monkeypatch.setattr(selector, "load_index", lambda: concepts)
-    rag_retrieve_mock = lambda query, all_concepts: candidates
+    rag_retrieve_mock = lambda query, all_concepts, override=None: candidates
     monkeypatch.setattr(selector, "rag_retrieve", rag_retrieve_mock)
 
     response = fake_llm_response(json.dumps(["a"]))
-    monkeypatch.setattr(selector, "llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
+    monkeypatch.setattr(selector, "_cached_llm", type("FakeLLM", (), {"invoke": staticmethod(lambda messages: response)})())
 
     result = selector.selector_node(state)
 
@@ -64,7 +64,7 @@ def test_selector_node_feeds_llm_with_cached_embedding_rankings(monkeypatch, mak
         captured["messages"] = messages
         return response
 
-    monkeypatch.setattr(selector, "llm", type("FakeLLM", (), {"invoke": staticmethod(fake_invoke)})())
+    monkeypatch.setattr(selector, "_cached_llm", type("FakeLLM", (), {"invoke": staticmethod(fake_invoke)})())
 
     state = make_state(user_prompt="explain attention in transformers")
     result = selector.selector_node(state)
