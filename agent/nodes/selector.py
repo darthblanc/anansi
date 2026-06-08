@@ -7,9 +7,21 @@ from agent.logging_config import get_logger
 from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
-llm = create_llm()
 
 INDEX_PATH = os.getenv("INDEX_PATH")
+
+_cached_llm = None
+
+
+def _get_llm(state: AgentState):
+    override = state.get("llm_override")
+    if override:
+        return create_llm(override=override)
+    global _cached_llm
+    if _cached_llm is None:
+        _cached_llm = create_llm()
+    return _cached_llm
+
 
 def load_index(index_path: str = INDEX_PATH) -> list[dict]:
     with open(index_path, "r") as f:
@@ -17,11 +29,12 @@ def load_index(index_path: str = INDEX_PATH) -> list[dict]:
 
 def selector_node(state: AgentState) -> AgentState:
     logger.info("selector — prompt: %r", state["user_prompt"])
+    llm = _get_llm(state)
     concepts = load_index()
     logger.debug("selector — %d concepts available", len(concepts))
 
     # RAG: shortlist semantically relevant candidates before LLM filtering
-    candidates = rag_retrieve(state["user_prompt"], concepts)
+    candidates = rag_retrieve(state["user_prompt"], concepts, override=state.get("embeddings_override"))
     logger.debug("selector — LLM filtering %d RAG candidates", len(candidates))
 
     index_str = "\n".join([

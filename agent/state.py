@@ -13,9 +13,24 @@ class QuizQuestion(TypedDict):
     question_index: Optional[int]
 
 
+class LLMOverride(TypedDict):
+    provider: Literal["anthropic", "openai"]
+    api_key: str
+
+
+class EmbeddingsOverride(TypedDict):
+    provider: Literal["openai"]
+    api_key: str
+
+
 class AgentState(TypedDict):
     # Input
     user_prompt: str                        # "quiz me on multi agent systems"
+
+    # Deployed-path overrides — may carry live user-supplied API keys.
+    # NEVER log or persist these wholesale (in-memory session use only).
+    llm_override: Optional[LLMOverride]
+    embeddings_override: Optional[EmbeddingsOverride]
 
     # Topic selection
     selected_concepts: list[str]            # concept ids from index.json

@@ -5,11 +5,23 @@ from agent.logging_config import get_logger
 from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
-llm = create_llm(with_thinking=True)
+
+_cached_thinking_llm = None
+
+
+def _get_llm(state: AgentState):
+    override = state.get("llm_override")
+    if override:
+        return create_llm(with_thinking=True, override=override)
+    global _cached_thinking_llm
+    if _cached_thinking_llm is None:
+        _cached_thinking_llm = create_llm(with_thinking=True)
+    return _cached_thinking_llm
 
 
 def planner_node(state: AgentState) -> AgentState:
     logger.info("planner — planning quiz from %d concept(s)", len(state["loaded_content"]))
+    llm = _get_llm(state)
 
     content_str = "\n\n---\n\n".join([
         f"# {concept_id}\n{content}"

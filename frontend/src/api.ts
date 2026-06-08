@@ -1,4 +1,4 @@
-import type { StartResponse, SubmitResponse } from './types'
+import type { QuizConfig, StartResponse, SubmitResponse } from './types'
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(path, {
@@ -10,8 +10,14 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return res.json()
 }
 
-export const startQuiz = (topic: string) =>
-  post<StartResponse>('/api/quiz/start', { topic })
+export const startQuiz = (topic: string, config: QuizConfig) =>
+  post<StartResponse>('/api/quiz/start', {
+    topic,
+    llm_provider: config.llmProvider,
+    llm_api_key: config.llmApiKey,
+    embeddings_provider: 'openai',
+    embeddings_api_key: config.embeddingsApiKey,
+  })
 
 export const submitQuiz = (session_id: string, answers: string[]) =>
   post<SubmitResponse>('/api/quiz/submit', { session_id, answers })

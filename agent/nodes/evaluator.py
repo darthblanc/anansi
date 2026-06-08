@@ -5,7 +5,18 @@ from agent.logging_config import get_logger
 from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
-llm = create_llm(with_thinking=True)
+
+_cached_thinking_llm = None
+
+
+def _get_llm(state: AgentState):
+    override = state.get("llm_override")
+    if override:
+        return create_llm(with_thinking=True, override=override)
+    global _cached_thinking_llm
+    if _cached_thinking_llm is None:
+        _cached_thinking_llm = create_llm(with_thinking=True)
+    return _cached_thinking_llm
 
 
 def _evaluate_mcq(q: dict, i: int) -> dict:
@@ -46,6 +57,7 @@ def evaluate_one_node(state: AgentState) -> dict:
     if q.get("question_type") == "mcq":
         return _evaluate_mcq(q, i)
 
+    llm = _get_llm(state)
     content_str = "\n\n---\n\n".join([
         f"# {concept_id}\n{content}"
         for concept_id, content in state["loaded_content"].items()

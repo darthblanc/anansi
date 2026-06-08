@@ -45,3 +45,26 @@
 .topic-input:focus {
   border-color: #666;
 }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.field-fixed-value {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin: 0;
+}
+
+.topic-note {
+  font-size: 0.78rem;
+  color: #777;
+  margin: -0.3rem 0 0;
+}

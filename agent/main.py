@@ -63,6 +63,8 @@ def run_quiz(user_prompt: str):
 
     initial_state: AgentState = {
         "user_prompt": user_prompt,
+        "llm_override": None,
+        "embeddings_override": None,
         "selected_concepts": [],
         "loaded_content": {},
         "quiz_plan": [],

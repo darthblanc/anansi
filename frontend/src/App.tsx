@@ -3,7 +3,7 @@ import { TopicForm } from './components/TopicForm'
 import { QuizView } from './components/QuizView'
 import { Results } from './components/Results'
 import { startQuiz, submitQuiz } from './api'
-import type { Question, EvaluatedQuestion } from './types'
+import type { Question, EvaluatedQuestion, QuizConfig } from './types'
 import './App.css'
 
 type Stage =
@@ -17,11 +17,11 @@ export default function App() {
   const [stage, setStage] = useState<Stage>({ name: 'topic' })
   const [error, setError] = useState<string | null>(null)
 
-  async function handleStart(topic: string) {
+  async function handleStart(topic: string, config: QuizConfig) {
     setError(null)
     setStage({ name: 'generating' })
     try {
-      const data = await startQuiz(topic)
+      const data = await startQuiz(topic, config)
       setStage({ name: 'quiz', sessionId: data.session_id, questions: data.questions })
     } catch {
       setError('Failed to generate quiz. Check your API key and wiki path.')

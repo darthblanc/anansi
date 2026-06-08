@@ -11,6 +11,23 @@ _DEFAULT_KEY_ENV = {
     "openai": "OPENAI_API_KEY",
 }
 
+# Cloud-only providers exposed to the deployed frontend/backend (the CLI's
+# file-based config may still use "ollama"). Users supply their own key, so
+# the deployed path picks one fixed preset model per provider rather than
+# letting the model string be chosen.
+CLOUD_LLM_PROVIDERS = ("anthropic", "openai")
+
+LLM_PRESETS = {
+    "anthropic": {
+        "standard": {"model": "claude-sonnet-4-6", "params": {}},
+        "thinking": {"model": "claude-sonnet-4-6", "thinking": True, "params": {}},
+    },
+    "openai": {
+        "standard": {"model": "gpt-4.1", "params": {}},
+        "thinking": {"model": "gpt-4.1", "params": {}},
+    },
+}
+
 
 def extract_text(content) -> str:
     if isinstance(content, list):
@@ -39,14 +56,27 @@ def _resolve_api_key(cfg: dict) -> str | None:
     return key
 
 
-def create_llm(with_thinking: bool = False) -> BaseChatModel:
-    cfg = _load_config()
-    provider = cfg["provider"]
-    profile = cfg["thinking"] if with_thinking else cfg["standard"]
-    model = profile["model"]
-    params = profile.get("params", {})
-    thinking_enabled = profile.get("thinking", False)
-    api_key = _resolve_api_key(cfg)
+def create_llm(with_thinking: bool = False, override: dict | None = None) -> BaseChatModel:
+    if override is not None:
+        provider = override["provider"]
+        if provider not in CLOUD_LLM_PROVIDERS:
+            raise ValueError(
+                f"Unsupported LLM provider {provider!r} for the deployed path. "
+                f"Supported: {CLOUD_LLM_PROVIDERS}"
+            )
+        profile = LLM_PRESETS[provider]["thinking" if with_thinking else "standard"]
+        model = profile["model"]
+        params = profile.get("params", {})
+        thinking_enabled = profile.get("thinking", False)
+        api_key = override["api_key"]
+    else:
+        cfg = _load_config()
+        provider = cfg["provider"]
+        profile = cfg["thinking"] if with_thinking else cfg["standard"]
+        model = profile["model"]
+        params = profile.get("params", {})
+        thinking_enabled = profile.get("thinking", False)
+        api_key = _resolve_api_key(cfg)
 
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic

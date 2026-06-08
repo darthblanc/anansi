@@ -19,6 +19,16 @@ def _load_config() -> dict:
         return json.load(f)
 
 
+# Cloud-only embedding providers exposed to the deployed frontend/backend
+# (the CLI's file-based config may still use "ollama"). Users supply their
+# own key, so the deployed path picks one fixed preset model per provider.
+CLOUD_EMBEDDING_PROVIDERS = ("openai",)
+
+EMBEDDING_PRESETS = {
+    "openai": {"model": "text-embedding-3-small", "top_k": 10},
+}
+
+
 def _create_embedding_model(cfg: dict):
     provider = cfg.get("provider", "openai")
     model = cfg.get("model", "text-embedding-3-small")
@@ -26,7 +36,7 @@ def _create_embedding_model(cfg: dict):
     if provider == "openai":
         from langchain_openai import OpenAIEmbeddings
         api_key_env = cfg.get("api_key_env", "OPENAI_API_KEY")
-        api_key = os.environ.get(api_key_env)
+        api_key = cfg.get("api_key") or os.environ.get(api_key_env)
         return OpenAIEmbeddings(model=model, api_key=api_key)
 
     elif provider == "ollama":
@@ -77,9 +87,21 @@ def rag_retrieve(
     query: str,
     concepts: list[dict],
     index_path: str = INDEX_PATH,
+    override: dict | None = None,
 ) -> list[dict]:
-    cfg = _load_config().get("embeddings", {})
-    top_k = cfg.get("top_k", 10)
+    if override is not None:
+        provider = override["provider"]
+        if provider not in CLOUD_EMBEDDING_PROVIDERS:
+            raise ValueError(
+                f"Unsupported embeddings provider {provider!r} for the deployed path. "
+                f"Supported: {CLOUD_EMBEDDING_PROVIDERS}"
+            )
+        preset = EMBEDDING_PRESETS[provider]
+        cfg = {"provider": provider, "model": preset["model"], "api_key": override["api_key"]}
+        top_k = preset["top_k"]
+    else:
+        cfg = _load_config().get("embeddings", {})
+        top_k = cfg.get("top_k", 10)
     embed_model = _create_embedding_model(cfg)
 
     cache = _load_or_build_cache(concepts, embed_model, index_path)

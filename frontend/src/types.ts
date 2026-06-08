@@ -1,3 +1,11 @@
+export type LlmProvider = 'anthropic' | 'openai'
+
+export type QuizConfig = {
+  llmProvider: LlmProvider
+  llmApiKey: string
+  embeddingsApiKey: string
+}
+
 export type Question = {
   question: string
   question_type: 'mcq' | 'free'

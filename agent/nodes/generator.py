@@ -5,11 +5,23 @@ from agent.logging_config import get_logger
 from agent.prompts import PROMPTS
 
 logger = get_logger(__name__)
-llm = create_llm()
+
+_cached_llm = None
+
+
+def _get_llm(state: AgentState):
+    override = state.get("llm_override")
+    if override:
+        return create_llm(override=override)
+    global _cached_llm
+    if _cached_llm is None:
+        _cached_llm = create_llm()
+    return _cached_llm
 
 
 def generator_node(state: AgentState) -> AgentState:
     logger.info("generator — generating %d question(s)", len(state["quiz_plan"]))
+    llm = _get_llm(state)
     questions = []
 
     for i, outline in enumerate(state["quiz_plan"], 1):
